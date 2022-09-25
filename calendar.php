@@ -3181,6 +3181,19 @@ $("#rcmfd_new_category").keypress(function(event) {
     }
 
     /**
+     * Escape DateTimeImmutableObject to DateTime if necessary
+     */
+    private function sanitize_date_time_immutable($date)
+    {
+        $dateclone = clone $date;
+        if (is_object($dateclone) && is_a($dateclone, 'DateTimeImmutable')) {
+            return DateTime::createFromImmutable($dateclone);
+        } else {
+            return $dateclone;
+        }
+    }
+
+    /**
      *
      */
     private function mail_agenda_event_row($event, $class = '')
@@ -3189,8 +3202,8 @@ $("#rcmfd_new_category").keypress(function(event) {
             $time = $this->gettext('all-day');
         }
         else {
-            $start = is_object($event['start']) ? clone $event['start'] : $event['start'];
-            $end = is_object($event['end']) ? clone $event['end'] : $event['end'];
+            $start = is_object($event['start']) ? $this->sanitize_date_time_immutable($event['start']) : $event['start'];
+            $end = is_object($event['end']) ? $this->sanitize_date_time_immutable($event['end']) : $event['end'];
 
             $time = $this->rc->format_date($start, $this->rc->config->get('time_format'))
                 . ' - ' . $this->rc->format_date($end, $this->rc->config->get('time_format'));
@@ -3259,7 +3272,7 @@ $("#rcmfd_new_category").keypress(function(event) {
             // get prepared inline UI for this event object
             if ($ical_objects->method) {
                 $append   = '';
-                $date_str = $this->rc->format_date(clone $event['start'], $this->rc->config->get('date_format'), empty($event['start']->_dateonly));
+                $date_str = $this->rc->format_date($this->sanitize_date_time_immutable($event['start']), $this->rc->config->get('date_format'), empty($event['start']->_dateonly));
                 $date     = new DateTime($event['start']->format('Y-m-d') . ' 12:00:00', new DateTimeZone('UTC'));
 
                 // prepare a small agenda preview to be filled with actual event data on async request
