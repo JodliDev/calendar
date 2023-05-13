@@ -145,13 +145,13 @@ class caldav_driver extends calendar_driver
 
         if (!empty($this->rc->user->ID)) {
             $calendar_ids = array();
-            $result = $this->rc->db->query('SELECT 
+            $result = $this->rc->db->query('SELECT
                    cal.calendar_id AS `id`,
-                   cal.source_id AS `source_id`, 
-                   cal.name AS `name`, 
-                   cal.color AS `color`, 
+                   cal.source_id AS `source_id`,
+                   cal.name AS `name`,
+                   cal.color AS `color`,
                    cal.showalarms AS `showalarms`,
-                   cal.caldav_tag AS `caldav_tag`, 
+                   cal.caldav_tag AS `caldav_tag`,
                    cal.caldav_url AS `caldav_url`,
                    s.caldav_user AS `caldav_user`,
                    s.caldav_pass AS `caldav_pass`,
@@ -298,7 +298,7 @@ class caldav_driver extends calendar_driver
             {
                 // Skip already existent calendars
                 $result = $this->rc->db->query("SELECT * FROM ".$this->db_calendars." WHERE user_id=? and caldav_url LIKE ?", $this->rc->user->ID, $calendar['href']);
-                if($this->rc->db->affected_rows($result)) continue;
+                if($this->rc->db->num_rows($result) > 0) continue;
 
                 $cal = array(
                     'caldav_url' => $calendar['href'],
@@ -333,24 +333,24 @@ class caldav_driver extends calendar_driver
     public function create_source($source)
     {
         $source['caldav_url'] = self::_encode_url($source['caldav_url']);
-             
+
         // Re-discover all existing calendars systematically
-        try {               
+        try {
             $calendars = $this->_autodiscover_calendars($source);
-        }   
+        }
         catch(Exception $e) {
             self::debug_log($e);
             $this->rc->output->show_message($this->cal->gettext('source_notadded_error'), 'error');
             return false;
         }
-       
+
         // Remove local data associated with deprecated calendars
         $caldav_urls = array_column($calendars, 'href');
         $query = $this->rc->db->query(
             "DELETE FROM " . $this->db_calendars . " WHERE user_id=? AND caldav_url NOT IN ('" . implode("','", $caldav_urls) . "')",
             $this->rc->user->ID);
         $this->rc->db->affected_rows($query);
-            
+
         // Skip update if the set of available calendars matches
         $result = $this->rc->db->query(
             "SELECT calendar_id FROM " . $this->db_calendars . " WHERE user_id=? AND caldav_url LIKE ?",
@@ -358,10 +358,10 @@ class caldav_driver extends calendar_driver
         $count_cur = $this->rc->db->num_rows($result);
         $count_avail = count($calendars);
         if ($count_cur == $count_avail)
-        {   
+        {
             self::debug_log("Skip source update.");
             return true;
-        }           
+        }
 
         if(count($calendars)) {
             $pass = isset($source['caldav_pass']) ? $this->_encrypt_pass($source['caldav_pass']) : null;
@@ -2263,7 +2263,7 @@ else {
             }
 
             // no local event -> create event
-            else
+            else if(isset($update["remote_event"]))
             {
                 $event = array_merge($update["remote_event"], array(
                     "caldav_url" => $update["url"],
@@ -2302,6 +2302,16 @@ else {
      */
     private function _is_synced($cal_id)
     {
+        if ($this->rc->db->db_provider == 'sqlite') {
+            // this is a minimal
+            $query = $this->rc->db->query(
+                "UPDATE ".$this->db_calendars." ".
+                "SET caldav_last_change = CURRENT_TIMESTAMP WHERE calendar_id = ?",
+                $cal_id);
+
+            return false;
+        }
+
         // Atomic sql: Check for exceeded sync period and update last_change.
         $query = $this->rc->db->query(
             "UPDATE ".$this->db_calendars." ".
