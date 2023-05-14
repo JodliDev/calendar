@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `caldav_calendars` (
     `showalarms` tinyINTEGER NOT NULL DEFAULT '1',
     `caldav_tag` TEXT DEFAULT NULL,
     `caldav_url` TEXT NOT NULL,
-    `caldav_last_change` timestamp NOT NULL ,
+    `caldav_last_change` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `is_ical` tinyINTEGER NOT NULL DEFAULT '0',
     `ical_user` TEXT DEFAULT NULL,
     `ical_pass` TEXT DEFAULT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS `caldav_events` (
     `notifyat` datetime DEFAULT NULL,
     `caldav_url` TEXT NOT NULL,
     `caldav_tag` TEXT DEFAULT NULL,
-    `caldav_last_change` timestamp NOT NULL ,
+    `caldav_last_change` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (`calendar_id`)
         REFERENCES `caldav_calendars`(`calendar_id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
