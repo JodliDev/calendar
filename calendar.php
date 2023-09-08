@@ -79,6 +79,20 @@ class calendar extends rcube_plugin
         // load calendar configuration
         $this->load_config();
 
+        // add taskbar button
+        $this->add_texts('localization/', true);
+        $this->add_button([
+        		'label'      => 'calendar.calendar',
+                'command'    => 'calendar',
+                'class'      => 'button-calendar',
+                'classsel'   => 'button-calendar button-selected',
+                'innerclass' => 'button-inner',
+                
+                'type'       => 'link'
+            ],
+            'taskbar'
+        );
+        
         // catch iTIP confirmation requests that don're require a valid session
         if ($this->rc->action == 'attend' && !empty($_REQUEST['_t'])) {
             $this->add_hook('startup', [$this, 'itip_attend_response']);
