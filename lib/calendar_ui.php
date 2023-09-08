@@ -48,18 +48,6 @@ class calendar_ui
             return;
         }
 
-        // add taskbar button
-        $this->cal->add_button([
-                'command'    => 'calendar',
-                'class'      => 'button-calendar',
-                'classsel'   => 'button-calendar button-selected',
-                'innerclass' => 'button-inner',
-                'label'      => 'calendar.calendar',
-                'type'       => 'link'
-            ],
-            'taskbar'
-        );
-
         // load basic client script
         if ($this->rc->action != 'print') {
             $this->cal->include_script('calendar_base.js');
