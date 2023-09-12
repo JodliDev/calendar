@@ -22,7 +22,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
+#[AllowDynamicProperties]
 class calendar extends rcube_plugin
 {
     const FREEBUSY_UNKNOWN   = 0;
@@ -78,6 +78,18 @@ class calendar extends rcube_plugin
 
         // load calendar configuration
         $this->load_config();
+        $this->add_texts('localization/', true);
+        $this->add_button([
+        		'label'      => 'calendar.calendar',
+                'command'    => 'calendar',
+                'class'      => 'button-calendar',
+                'classsel'   => 'button-calendar button-selected',
+                'innerclass' => 'button-inner',
+                
+                'type'       => 'link'
+            ],
+            'taskbar'
+        );
 
         // catch iTIP confirmation requests that don're require a valid session
         if ($this->rc->action == 'attend' && !empty($_REQUEST['_t'])) {

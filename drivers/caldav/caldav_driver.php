@@ -2063,7 +2063,7 @@ else {
         $caldav = new caldav_client($props["caldav_url"], $props["caldav_user"], $props["caldav_pass"]);
 
         $tokens = parse_url($props["caldav_url"]);
-        $base_uri = $tokens['scheme']."://".$tokens['host'].($tokens['port'] ? ":".$tokens['port'] : null);
+        $base_uri = $tokens['scheme']."://".$tokens['host'].(isset($tokens['port']) ? ":".$tokens['port'] : null);
         $caldav_url = $props["caldav_url"];
         $response = $caldav->prop_find($caldav_url, array_merge($current_user_principal,$cal_attribs), 0);
         if (!$response) {

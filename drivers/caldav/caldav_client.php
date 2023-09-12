@@ -22,7 +22,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
+#[AllowDynamicProperties]
 class caldav_client extends Sabre\DAV\Client
 {
     const CLARK_GETCTAG = '{http://calendarserver.org/ns/}getctag';
@@ -51,8 +51,8 @@ class caldav_client extends Sabre\DAV\Client
         $this->libvcal = new libvcalendar();
 
         $tokens = parse_url($uri);
-        $this->base_uri = $tokens['scheme']."://".$tokens['host'].($tokens['port'] ? ":".$tokens['port'] : null);
-        $this->path = $tokens['path'].($tokens['query'] ? "?".$tokens['query'] : null);
+        $this->base_uri = $tokens['scheme']."://".$tokens['host'].(isset($tokens['port']) ? ":".$tokens['port'] : null);
+        $this->path = isset($tokens['path']) ? $tokens['path']:null.(isset($tokens['query']) ? "?".$tokens['query'] : null);
 
         $settings = array(
             'baseUri' => $this->base_uri,
