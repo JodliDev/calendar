@@ -157,6 +157,12 @@ $config['kolab_invitation_calendars'] = false;
 //     )
 // );
 
+// Path used to create new calendars in a CalDav source.
+// The following replacement variables are supported:
+// %u - Source user name
+// %i - Newly generated calendar UUID
+// $config['calendar_caldav_new_calendar_path'] = '/calendars/%u/%i';
+
 // Driver to provide a resource directory ('ldap' is the only implementation yet).
 // Leave empty or commented to disable resources support.
 // $config['calendar_resources_driver'] = 'ldap';

@@ -273,10 +273,10 @@ class caldav_driver extends calendar_driver
 
             $server_url = self::_encode_url($source['caldav_url']);
             $server_path = rtrim(parse_url($server_url, PHP_URL_PATH), '/');
-            $calId = $this->cal->generate_uid();
-            $path = "/calendars/$source[caldav_user]/$calId";
+            $path = $this->_get_new_calendar_path($source);
 
             self::debug_log("Creating new calendar \"$cal[name]\" with path $path at: " . $server_url);
+
             $client = new caldav_client($server_url, $source['caldav_user'], $source['caldav_pass']);
 
             if($client->create_calendar($server_path . $path, $cal['name'], isset($cal['color']) ? $cal['color'] : 'cc0000')) {
@@ -332,8 +332,6 @@ class caldav_driver extends calendar_driver
      */
     public function create_source($source)
     {
-        $source['caldav_url'] = self::_encode_url($source['caldav_url']);
-             
         // Re-discover all existing calendars systematically
         try {               
             $calendars = $this->_autodiscover_calendars($source);
@@ -531,14 +529,12 @@ class caldav_driver extends calendar_driver
             if (!$event['calendar'] || !$this->calendars[$event['calendar']])
                 return false;
 
-            if($event = $this->_save_preprocess($event)) {
-                $sync_client = $this->sync_clients[$event["calendar"]];
+            $sync_client = $this->sync_clients[$event["calendar"]];
 
-                // Only push event if caldav_tag is not set to avoid pushing it twice
-                if (isset($event["caldav_tag"]) || ($event = $sync_client->create_event($event)) !== null) {
-                    if ($event_id = $this->_insert_event($event)) {
-                        $this->_update_recurring($event);
-                    }
+            // Only push event if caldav_tag is not set to avoid pushing it twice
+            if (isset($event["caldav_tag"]) || ($event = $sync_client->create_event($event)) !== null) {
+                if ($event_id = $this->_insert_event($event)) {
+                    $this->_update_recurring($event);
                 }
             }
 
@@ -553,7 +549,7 @@ class caldav_driver extends calendar_driver
      */
     private function _insert_event(&$event)
     {
-        //$event = $this->_save_preprocess($event);
+        $event = $this->_save_preprocess($event);
 
         //TODO: proper 4 byte character (eg emoticons) handling
         //utf8 in mysql only supports 3 byte characters, so this throws an error if there are emoticons in the description.
@@ -2230,6 +2226,12 @@ else {
 
         foreach($updates as $update)
         {
+            if(is_null($update['remote_event']))
+            {
+                self::debug_log("No remote_event in update: ".print_r($update, true));
+                continue;
+
+            }
             if($update['remote_event']['allday'])
             {
                 //caldav has exclusive end dates set to midnight of the next day.
@@ -2348,5 +2350,13 @@ else {
         $e = new Encryption();
         $p = $e->encrypt($pass);
         return base64_encode($p);
+    }
+
+    private function _get_new_calendar_path($source) {
+        $template = $this->rc->config->get('calendar_caldav_new_calendar_path', '/calendars/%u/%i');
+        return strtr($template, [
+                '%u' => $source['caldav_user'],
+                '%i' => $this->cal->generate_uid(),
+        ]);
     }
 }
