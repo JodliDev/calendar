@@ -332,8 +332,6 @@ class caldav_driver extends calendar_driver
      */
     public function create_source($source)
     {
-        $source['caldav_url'] = self::_encode_url($source['caldav_url']);
-             
         // Re-discover all existing calendars systematically
         try {               
             $calendars = $this->_autodiscover_calendars($source);
