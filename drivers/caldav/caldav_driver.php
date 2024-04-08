@@ -273,10 +273,10 @@ class caldav_driver extends calendar_driver
 
             $server_url = self::_encode_url($source['caldav_url']);
             $server_path = rtrim(parse_url($server_url, PHP_URL_PATH), '/');
-            $calId = $this->cal->generate_uid();
-            $path = "/calendars/$source[caldav_user]/$calId";
+            $path = $this->_get_new_calendar_path($source);
 
             self::debug_log("Creating new calendar \"$cal[name]\" with path $path at: " . $server_url);
+
             $client = new caldav_client($server_url, $source['caldav_user'], $source['caldav_pass']);
 
             if($client->create_calendar($server_path . $path, $cal['name'], isset($cal['color']) ? $cal['color'] : 'cc0000')) {
@@ -2348,5 +2348,13 @@ else {
         $e = new Encryption();
         $p = $e->encrypt($pass);
         return base64_encode($p);
+    }
+
+    private function _get_new_calendar_path($source) {
+        $template = $this->rc->config->get('calendar_caldav_new_calendar_path', '/calendars/%u/%i');
+        return strtr($template, [
+                '%u' => $source['caldav_user'],
+                '%i' => $this->cal->generate_uid(),
+        ]);
     }
 }
