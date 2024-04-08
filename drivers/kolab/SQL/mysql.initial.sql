@@ -29,4 +29,4 @@ CREATE TABLE IF NOT EXISTS `itipinvitations` (
     REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
 
-REPLACE INTO system (name, value) VALUES ('calendar-kolab-version', '2014041700');
+INSERT INTO system (name, value) VALUES ('calendar-kolab-version', '2014041700');
