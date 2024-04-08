@@ -529,14 +529,12 @@ class caldav_driver extends calendar_driver
             if (!$event['calendar'] || !$this->calendars[$event['calendar']])
                 return false;
 
-            if($event = $this->_save_preprocess($event)) {
-                $sync_client = $this->sync_clients[$event["calendar"]];
+            $sync_client = $this->sync_clients[$event["calendar"]];
 
-                // Only push event if caldav_tag is not set to avoid pushing it twice
-                if (isset($event["caldav_tag"]) || ($event = $sync_client->create_event($event)) !== null) {
-                    if ($event_id = $this->_insert_event($event)) {
-                        $this->_update_recurring($event);
-                    }
+            // Only push event if caldav_tag is not set to avoid pushing it twice
+            if (isset($event["caldav_tag"]) || ($event = $sync_client->create_event($event)) !== null) {
+                if ($event_id = $this->_insert_event($event)) {
+                    $this->_update_recurring($event);
                 }
             }
 
@@ -551,7 +549,7 @@ class caldav_driver extends calendar_driver
      */
     private function _insert_event(&$event)
     {
-        //$event = $this->_save_preprocess($event);
+        $event = $this->_save_preprocess($event);
 
         //TODO: proper 4 byte character (eg emoticons) handling
         //utf8 in mysql only supports 3 byte characters, so this throws an error if there are emoticons in the description.
