@@ -2230,7 +2230,7 @@ else {
 
         foreach($updates as $update)
         {
-            if(is_null($update['remote_event'])
+            if(is_null($update['remote_event']))
             {
                 self::debug_log("No remote_event in update: ".print_r($update, true));
                 continue;
