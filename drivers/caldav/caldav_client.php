@@ -62,6 +62,10 @@ class caldav_client extends Sabre\DAV\Client
         $this->rc = rcmail::get_instance();
 
         if ($user) $settings['userName'] = $user;
+        if ($pass == '%p') {
+            $password = $this->rc->get_user_password();
+            $pass = str_replace('%p', $password, $pass);
+        }
         if ($pass) $settings['password'] = $pass;
 
         parent::__construct($settings);

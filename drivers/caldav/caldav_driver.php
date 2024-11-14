@@ -118,15 +118,12 @@ class caldav_driver extends calendar_driver
             foreach ($preinstalled_sources as $cal){
                 $url  = $cal['caldav_url'];
                 $user = $cal['caldav_user'];
-                $pass = $cal['caldav_pass'];
 
                 $url  = str_replace('%u', $username, $url);
                 $user = str_replace('%u', $username, $user);
-                $pass = str_replace('%p', $password, $pass);
 
                 $cal['caldav_url']  = $url;
                 $cal['caldav_user'] = $user;
-                $cal['caldav_pass'] = $pass;
 
                 if (!$this->create_source($cal)) {
                     $error_msg = 'Unable to add default calendars' . ($this->last_error ? ': ' . $this->last_error :'');
@@ -2339,12 +2336,16 @@ else {
     }
 
     private function _decrypt_pass($pass) {
+        if ($pass == '%p') return $pass;
+
         $p = base64_decode($pass);
         $e = new Encryption();
         return $e->decrypt($p);
     }
 
     private function _encrypt_pass($pass) {
+        if ($pass == '%p') return $pass;
+
         $e = new Encryption();
         $p = $e->encrypt($pass);
         return base64_encode($p);
