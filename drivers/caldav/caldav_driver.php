@@ -36,7 +36,7 @@ class caldav_driver extends calendar_driver
     // features this backend supports
     public $alarms = true;
     public $attendees = true;
-    public $freebusy = false;
+    public $freebusy = true;
     public $attachments = true;
     public $alarm_types = array('DISPLAY');
 
@@ -1782,6 +1782,88 @@ class caldav_driver extends calendar_driver
         );
 
         return $this->rc->db->affected_rows($query);
+    }
+
+    public function get_freebusy_list($email, $start, $end) {
+        $result = $this->rc->db->query(
+            'SELECT source_id, caldav_url, caldav_user, caldav_pass
+            FROM ' . $this->db_sources . '
+            WHERE user_id=?',
+            $this->rc->user->ID,
+        );
+
+        $fbtypemap = [
+            'UNKNOWN' => calendar::FREEBUSY_UNKNOWN,
+            'FREE' => calendar::FREEBUSY_FREE,
+            'BUSY' => calendar::FREEBUSY_BUSY,
+            'TENTATIVE' => calendar::FREEBUSY_TENTATIVE,
+            'OUT-OF-OFFICE' => calendar::FREEBUSY_OOF,
+        ];
+        $freebusy_list = [];
+        $success = false;
+        while ($result && ($source = $this->rc->db->fetch_assoc($result))) {
+            $source['caldav_pass'] = $this->_decrypt_pass($source['caldav_pass']);
+            $server_url = self::_encode_url($source['caldav_url']);
+
+            $caldav = new caldav_client($server_url, $source['caldav_user'], $source['caldav_pass']);
+            $response = $caldav->prop_find($server_url, ['{DAV:}current-user-principal'], 0);
+
+            if (
+                $response
+                && array_key_exists('{DAV:}current-user-principal', $response)
+                && count($response['{DAV:}current-user-principal']) > 0
+                && array_key_exists('value', $response['{DAV:}current-user-principal'][0])
+            ) {
+                $response = $caldav->prop_find(
+                    $response['{DAV:}current-user-principal'][0]['value'],
+                    ['{urn:ietf:params:xml:ns:caldav}schedule-outbox-URL'],
+                    0,
+                );
+
+                if (
+                    $response
+                    && array_key_exists('{urn:ietf:params:xml:ns:caldav}schedule-outbox-URL', $response)
+                    && count($response['{urn:ietf:params:xml:ns:caldav}schedule-outbox-URL']) > 0
+                    && array_key_exists('value', $response['{urn:ietf:params:xml:ns:caldav}schedule-outbox-URL'][0])
+                ) {
+                    $vcalendar = new Sabre\VObject\Component\VCalendar([
+                        'METHOD' => 'REQUEST',
+                        'VFREEBUSY' => [
+                            'ORGANIZER' => 'mailto:' . $this->rc->get_user_name(),
+                            'ATTENDEE' => $email,
+                            'DTSTART' => DateTime::createFromFormat('U', $start),
+                            'DTEND' => DateTime::createFromFormat('U', $end),
+                        ]
+                    ]);
+                    $freebusy_info = $caldav->get_freebusy_info(
+                        $response['{urn:ietf:params:xml:ns:caldav}schedule-outbox-URL'][0]['value'],
+                        $vcalendar->serialize()
+                    );
+
+                    if ($freebusy_info) {
+                        $success = true;
+                        if (isset($freebusy_info->FREEBUSY)) {
+                            foreach ($freebusy_info->FREEBUSY as $freebusy) {
+                                $fbType = isset($freebusy['FBTYPE']) ? (string) $freebusy['FBTYPE'] : 'BUSY';
+                                [$startTime, $endTime] = explode('/', $freebusy->getValue());
+
+                                $freebusy_list[] = [
+                                    strtotime($startTime),
+                                    strtotime($endTime),
+                                    $fbtypemap[strtoupper($fbType)] ?? 0,
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($success) {
+            return $freebusy_list;
+        } else {
+            return false;
+        }
     }
 
     /**

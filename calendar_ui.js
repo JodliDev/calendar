@@ -2035,12 +2035,17 @@ function rcube_calendar_ui(settings)
       }
       
       icon = $(icon).attr('class', 'availabilityicon loading');
-      
+
+      var start = event.allDay ? '00:00' : $('#edit-starttime').val();
+      var end = event.allDay ? '23:59' : $('#edit-endtime').val();
+      var start = me.parse_datetime(start, $('#edit-startdate').val());
+      var end   = me.parse_datetime(end, $('#edit-enddate').val());
+
       $.ajax({
         type: 'GET',
         dataType: 'html',
         url: rcmail.url('freebusy-status'),
-        data: { email:email, start:date2servertime(clone_date(event.start, event.allDay?1:0)), end:date2servertime(clone_date(event.end, event.allDay?2:0)), _remote: 1 },
+        data: { email:email, start:date2servertime(start), end:date2servertime(end), _remote: 1 },
         success: function(status){
           var avail = String(status).toLowerCase();
           icon.removeClass('loading').addClass(avail).attr('title', rcmail.gettext('avail' + avail, 'calendar'));

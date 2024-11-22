@@ -107,4 +107,4 @@ CREATE TABLE IF NOT EXISTS `caldav_attachments` (
     CONSTRAINT `fk_caldav_attachments_event_id` FOREIGN KEY (`event_id`)
         REFERENCES `caldav_events`(`event_id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) /*!40000 ENGINE=INNODB */ /*!40101 CHARACTER SET utf8 COLLATE utf8_general_ci */;
-REPLACE INTO `system` (`name`, `value`) VALUES ('calendar-caldav-version', '2021082400');
+REPLACE INTO `system` (`name`, `value`) VALUES ('calendar-caldav-version', '2024112200');

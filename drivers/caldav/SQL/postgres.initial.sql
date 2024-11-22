@@ -122,4 +122,4 @@ CREATE TABLE IF NOT EXISTS caldav_attachments (
     REFERENCES caldav_events(event_id) ON DELETE CASCADE ON UPDATE CASCADE
     ) /* SQLINES DEMO *** DB */ /* SQLINES DEMO *** ET utf8 COLLATE utf8_general_ci */;
 
-INSERT INTO system (name, value) VALUES ('calendar-caldav-version', '2021082400') ON CONFLICT (name) DO UPDATE SET value = excluded.value;
+INSERT INTO system (name, value) VALUES ('calendar-caldav-version', '2024112200') ON CONFLICT (name) DO UPDATE SET value = excluded.value;

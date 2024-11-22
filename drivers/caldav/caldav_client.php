@@ -400,5 +400,31 @@ class caldav_client extends Sabre\DAV\Client
         return $response["statusCode"] === 204 ||    // 204 (no content, successfully deleted)
             $response["statusCode"] === 200;      // 200 (OK, successfully deleted)
     }
+
+    /**
+     * Fetch freebusy info.
+     *
+     * @return Sabre\VObject\Component\VFreeBusy
+     */
+    public function get_freebusy_info($path, $body) {
+        $headers = ['Content-Type' => 'text/calendar; charset=utf-8'];
+
+        $response = $this->request('POST', $path, $body, $headers);
+        if ($response['statusCode'] !== 200) {
+            rcmail::console('Could not get freebusy info for user. Response: ' . print_r($response, true));
+
+            return false;
+        }
+
+        $schedule_response = $this->xml->expect('{urn:ietf:params:xml:ns:caldav}schedule-response', $response['body'])[0]['value'];
+        $calendar_data = array_values(array_filter(
+            $schedule_response,
+            function ($arr) {
+                return $arr['name'] == '{urn:ietf:params:xml:ns:caldav}calendar-data';
+            }
+        ))[0]['value'];
+
+        return Sabre\VObject\Reader::read($calendar_data)->VFREEBUSY;
+    }
 };
 ?>

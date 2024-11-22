@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS `caldav_attachments` (
     FOREIGN KEY (`event_id`)
         REFERENCES `caldav_events`(`event_id`) ON DELETE CASCADE ON UPDATE CASCADE
 );
-REPLACE INTO `system` (`name`, `value`) VALUES ('calendar-caldav-version', '2021082400');
+REPLACE INTO `system` (`name`, `value`) VALUES ('calendar-caldav-version', '2024112200');
 
 CREATE INDEX caldav_user_name_idx ON caldav_calendars(user_id, name);
 CREATE INDEX caldav_uid_idx ON caldav_events(uid);
